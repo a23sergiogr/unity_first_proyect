@@ -1,0 +1,64 @@
+# Archivos generados por Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Configuración específica del usuario
+UserSettings/
+
+# Archivos de Visual Studio
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# Archivos de MonoDevelop
+*.unityproj
+*.csproj
+*.pidb
+*.suo
+*.tmp
+*.userprefs
+*.booproj
+*.svd
+
+# Archivos de compilación
+*.dll
+*.exe
+*.pdb
+*.mdb
+
+# Archivos de cache y logs
+*.log
+*.stackdump
+
+# Paquetes descargados
+Packages/*
+!Packages/manifest.json
+!Packages/packages-lock.json
+
+# Configuración de Lightmapping
+[Ll]ightmapSnapshot/
+
+# Configuración de metadatos de Unity
+/[Aa]ssets/[Aa]ddressable[Aa]sset[Ss]ettings*.bin
+/[Aa]ssets/[Ss]treamingAssets/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de Git
+.git/
+.gitignore
