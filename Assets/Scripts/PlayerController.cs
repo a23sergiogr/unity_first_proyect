@@ -6,8 +6,9 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
     private Vector2 movement;
-    [SerializeField] private Weapon equippedWeapon;
-    [SerializeField] private Transform firePoint;
+    [SerializeField] private Weapon[] equippedWeapon;
+    private int equippedWeaponIndex = 0;
+    private Transform firePoint;
 
     private float speed = 5f;
 
@@ -20,6 +21,14 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        for (int i = 0; i < equippedWeapon.Length; i++)
+        {
+            if (equippedWeapon[i] != null)
+            {
+                equippedWeapon[i].gameObject.SetActive(i == equippedWeaponIndex);
+            }
+        }
     }
 
     void Update()
@@ -27,6 +36,7 @@ public class PlayerController : MonoBehaviour
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
         movement = movement.normalized;
+
 
         RotateFirePointTowardsMouse();
 
@@ -36,7 +46,7 @@ public class PlayerController : MonoBehaviour
             mousePosition.z = 0f;
             Vector2 shootDirection = (mousePosition - transform.position).normalized;
 
-            equippedWeapon.Fire(shootDirection);
+            equippedWeapon[equippedWeaponIndex].Fire(shootDirection);
         }
 
         if (Input.GetMouseButtonDown(1) && equippedWeapon != null)
@@ -45,13 +55,23 @@ public class PlayerController : MonoBehaviour
             mousePosition.z = 0f;
             Vector2 shootDirection = (mousePosition - transform.position).normalized;
 
-            equippedWeapon.Fire2(shootDirection);
+            equippedWeapon[equippedWeaponIndex].Fire2(shootDirection);
         }
 
         if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= nextDashTime) 
         { 
             transform.LookAt(transform.position);
             StartCoroutine(Dash());
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            ChangeWeapon(0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            ChangeWeapon(1);
         }
     }
 
@@ -85,6 +105,8 @@ public class PlayerController : MonoBehaviour
 
     private void RotateFirePointTowardsMouse()
     {
+        firePoint = equippedWeapon[equippedWeaponIndex].GetFirePoint();
+
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePosition.z = 0f; 
 
@@ -92,13 +114,31 @@ public class PlayerController : MonoBehaviour
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-        firePoint.rotation = Quaternion.Euler(0, 0, angle);
+        equippedWeapon[equippedWeaponIndex].gameObject.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-        firePoint.position = transform.position + (Vector3)direction * 1f;
+        equippedWeapon[equippedWeaponIndex].gameObject.transform.position = transform.position + (Vector3)direction * 1f;
     }
 
     public void EquipWeapon(Weapon newWeapon)
     {
-        equippedWeapon = newWeapon;
+        equippedWeapon[equippedWeaponIndex] = newWeapon;
+    }
+
+    public void ChangeWeapon(int index)
+    {
+        if (index < 0 || index >= equippedWeapon.Length)
+        {
+            return;
+        }
+
+        for (int i = 0; i < equippedWeapon.Length; i++)
+        {
+            if (equippedWeapon[i] != null)
+            {
+                equippedWeapon[i].gameObject.SetActive(i == index);
+            }
+        }
+
+        equippedWeaponIndex = index;
     }
 }

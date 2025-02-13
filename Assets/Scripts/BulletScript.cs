@@ -3,6 +3,7 @@ using UnityEngine;
 public class BulletScript : MonoBehaviour
 {
     private float bulletSpeed;
+    private float dmgMultiprier;
     private float range;
     private Vector2 moveDirection;
 
