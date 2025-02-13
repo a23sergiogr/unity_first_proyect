@@ -12,6 +12,8 @@ UserSettings/
 
 # Archivos de Visual Studio
 .vscode/
+.vs
+.vsconfig
 *.csproj
 *.unityproj
 *.sln
