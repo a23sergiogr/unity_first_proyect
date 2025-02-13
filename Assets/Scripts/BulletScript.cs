@@ -42,7 +42,12 @@ public class BulletScript : MonoBehaviour
 
     public void SetDamage(float damage)
     {
-        this.damage = damage; 
+        this.damage = damage;
+    }
+
+    public void SetDmgMultiprier(float damage)
+    {
+        this.damage = damage;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
