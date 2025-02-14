@@ -4,7 +4,6 @@ using UnityEngine;
 public class Pistol : Weapon
 {
     [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private Transform firePoint;
     [SerializeField] private float bulletSpeed = 10f;
     [SerializeField] private float bulletRange = 2f;
     [SerializeField] private float bulletDmgMultiplier = 1.5f;
@@ -16,6 +15,11 @@ public class Pistol : Weapon
     private void Start()
     {
         closeAttackHitbox.SetActive(false);
+    }
+
+    public override Transform GetFirePoint()
+    {
+        return firePoint;
     }
 
     public override void Fire(Vector2 direction)

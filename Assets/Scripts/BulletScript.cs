@@ -3,6 +3,7 @@ using UnityEngine;
 public class BulletScript : MonoBehaviour
 {
     private float bulletSpeed;
+    private float dmgMultiprier;
     private float range;
     private Vector2 moveDirection;
 
@@ -41,7 +42,12 @@ public class BulletScript : MonoBehaviour
 
     public void SetDamage(float damage)
     {
-        this.damage = damage; 
+        this.damage = damage;
+    }
+
+    public void SetDmgMultiprier(float damage)
+    {
+        this.damage = damage;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
