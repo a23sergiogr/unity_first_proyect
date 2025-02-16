@@ -2,8 +2,6 @@ using UnityEngine;
 
 public abstract class Weapon : MonoBehaviour
 {
-    [SerializeField] protected float fireRate = 1f;
-    [SerializeField] protected float damage = 1f;
     [SerializeField] protected Transform firePoint;
     protected float nextFireTime = 0f;
 

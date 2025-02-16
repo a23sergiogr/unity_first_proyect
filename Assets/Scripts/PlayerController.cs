@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -10,16 +11,77 @@ public class PlayerController : MonoBehaviour
     private int equippedWeaponIndex = 0;
     private Transform firePoint;
 
-    private float speed = 5f;
 
+    [SerializeField] private List<Item> equippedItems = new List<Item>();
+
+
+
+private float _speed = 5f;
+    public float speed
+    {
+        get { return _speed; }
+        set
+        {
+            // Si el valor es mayor a 30, ajusta a 30
+            _speed = Mathf.Min(30f, value); }
+        }
+
+    /*Dash*/
     private float dashDistance = 4f;
-    private float dashCooldown = 3f;
+    private float _dashCooldown = 3f;
+    public float dashCooldown
+    {
+        get { return _dashCooldown; }
+        set
+        {
+            // Si el valor es menor a 1, ajusta a 1
+            _dashCooldown = Mathf.Max(1f, value);
+        }
+    }
     private float nextDashTime = 0f;
     private bool isDashing = false;
     private float dashDuration = 0.2f;
 
+    /*Healt and Mana Bars*/
+    private float maxHealth = 100f;
+    private float currentHealth;
+    [SerializeField] private GameObject healthBar;
+    [SerializeField] private GameObject maxHealthBar;
+
+    public void TakeDamage(float damage)
+    {
+        currentHealth -= damage;
+        if (currentHealth < 0)
+        {
+            currentHealth = 0;
+        }
+        UpdateHealthBar();
+    }
+
+    public void Heal(float healAmount)
+    {
+        currentHealth += healAmount;
+        if (currentHealth > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        float healthPercentage = currentHealth / maxHealth;
+
+        Vector3 healthBarScale = healthBar.transform.localScale;
+        healthBarScale.x = healthBarScale.x*healthPercentage; 
+        healthBar.transform.localScale = healthBarScale;
+    }
+
     void Start()
     {
+        currentHealth = maxHealth;
+        TakeDamage(25f);
+
         rb = GetComponent<Rigidbody2D>();
 
         for (int i = 0; i < equippedWeapon.Length; i++)
@@ -75,11 +137,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Item") 
+        {
+            Debug.Log("TrigerEnterred");
+            Item item = collision.GetComponent<Item>();
+
+            if (item != null)
+            {
+                item.ApplyEffect(this);
+                equippedItems.Add(item);
+                Destroy(collision.gameObject);
+            }
+        }
+    }
+
+
     private IEnumerator Dash()
     {
         isDashing = true;
 
-        nextDashTime = Time.time + dashCooldown;
+        nextDashTime = Time.time + _dashCooldown;
 
         Vector2 dashDirection = movement * dashDistance;
         Vector2 dashTarget = rb.position + dashDirection;
@@ -99,7 +178,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!isDashing)
         {
-            rb.MovePosition(rb.position + movement * speed * Time.deltaTime);
+            rb.MovePosition(rb.position + movement * _speed * Time.deltaTime);
         }
     }
 

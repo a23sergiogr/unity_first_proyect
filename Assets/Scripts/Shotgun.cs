@@ -4,6 +4,8 @@ using UnityEngine;
 public class Shotgun : Weapon
 {
     [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] protected float fireRate = 1f;
+    [SerializeField] protected float damage = 0.2f;
     [SerializeField] private int bulletCount = 5;
     [SerializeField] private float spreadAngle = 30f;
     [SerializeField] private float bulletSpeed = 10f;
@@ -39,6 +41,7 @@ public class Shotgun : Weapon
 
                 if (bulletScript != null)
                 {
+                    bulletScript.SetDamage(damage);
                     bulletScript.SetDirection(spreadDirection);
                     bulletScript.SetBulletSpeed(bulletSpeed);
                     bulletScript.SetRange(bulletRange);
