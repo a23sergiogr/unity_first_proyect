@@ -4,9 +4,10 @@ using UnityEngine;
 public class Pistol : Weapon
 {
     [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] protected float fireRate = 0.2f;
+    [SerializeField] protected float damage = 0.5f;
     [SerializeField] private float bulletSpeed = 10f;
     [SerializeField] private float bulletRange = 2f;
-    [SerializeField] private float bulletDmgMultiplier = 1.5f;
 
     [SerializeField] private GameObject closeAttackHitbox;
     [SerializeField] private float closeAttackDmgMultiplier = 1f;
@@ -33,6 +34,7 @@ public class Pistol : Weapon
 
             if (bulletScript != null)
             {
+                bulletScript.SetDamage(damage);
                 bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(bulletSpeed);
                 bulletScript.SetRange(bulletRange);
