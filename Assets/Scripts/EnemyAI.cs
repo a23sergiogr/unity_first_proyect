@@ -1,24 +1,23 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    private float moveSpeed = 3f;
     [SerializeField] Transform player;
+    NavMeshAgent agent;
 
     void Start()
     {
-        
+        agent = GetComponent<NavMeshAgent>();
     }
 
     void Update()
     {
-        if (player != null) 
-        { 
-            
-            Vector2 direction = (player.position - transform.position).normalized;
+        agent.SetDestination(player.position);
 
-            transform.Translate(direction * moveSpeed * Time.deltaTime);
-
-        }
+        // Hace que el enemigo mire hacia el jugador en 2D
+        Vector3 direction = (player.position - transform.position).normalized;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
     }
 }
