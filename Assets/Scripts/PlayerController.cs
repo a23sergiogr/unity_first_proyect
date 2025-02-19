@@ -28,34 +28,49 @@ private float _speed = 5f;
 
     /*Dash*/
     private float dashDistance = 4f;
-    private float _dashCooldown = 3f;
+    private float _dashCooldown = 2f;
     public float dashCooldown
     {
         get { return _dashCooldown; }
         set
         {
             // Si el valor es menor a 1, ajusta a 1
-            _dashCooldown = Mathf.Max(1f, value);
+            _dashCooldown = Mathf.Max(0.5f, value);
         }
     }
     private float nextDashTime = 0f;
     private bool isDashing = false;
-    private float dashDuration = 0.2f;
+    private float dashDuration = 0.12f;
 
     /*Healt and Mana Bars*/
     private float maxHealth = 100f;
     private float currentHealth;
+    private float invulnerabilityTime = 0.75f;
+    private bool isInvulnerable = false;
     [SerializeField] private GameObject healthBar;
     [SerializeField] private GameObject maxHealthBar;
 
     public void TakeDamage(float damage)
     {
+        if (isInvulnerable)
+        {
+            return;
+        }
+
         currentHealth -= damage;
+        StartCoroutine(Invulnerability());
         if (currentHealth < 0)
         {
             currentHealth = 0;
         }
         UpdateHealthBar();
+    }
+
+    IEnumerator Invulnerability()
+    {
+        isInvulnerable = true;
+        yield return new WaitForSeconds(invulnerabilityTime);
+        isInvulnerable = false;
     }
 
     public void Heal(float healAmount)
