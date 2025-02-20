@@ -10,6 +10,7 @@ TagManager:
   - Wall
   - Item
   - EnemyAttack
+  - UI
   layers:
   - Default
   - TransparentFX

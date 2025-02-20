@@ -95,7 +95,6 @@ private float _speed = 5f;
     void Start()
     {
         currentHealth = maxHealth;
-        TakeDamage(25f);
 
         rb = GetComponent<Rigidbody2D>();
 
