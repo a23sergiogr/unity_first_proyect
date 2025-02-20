@@ -9,6 +9,7 @@ TagManager:
   - Attack
   - Wall
   - Item
+  - EnemyAttack
   layers:
   - Default
   - TransparentFX
