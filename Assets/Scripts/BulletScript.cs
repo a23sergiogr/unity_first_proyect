@@ -5,9 +5,9 @@ public class BulletScript : MonoBehaviour
     private float bulletSpeed;
     private float range;
     private Vector2 moveDirection;
-
     private float lifeTime;
     private float damage; 
+    private bool isEnemyBullet = false; 
 
     void Start()
     {
@@ -44,22 +44,41 @@ public class BulletScript : MonoBehaviour
         this.damage = damage;
     }
 
+    public void SetIsEnemyBullet(bool isEnemyBullet)
+    {
+        this.isEnemyBullet = isEnemyBullet;
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy"))
-        {
-            AbstractEnemy enemy = collision.GetComponent<AbstractEnemy>();
-            if (enemy != null)
-            {
-                enemy.reciveDmg(damage); 
-            }
-
-            Destroy(gameObject);
-        }
-
         if (collision.CompareTag("Wall"))
         {
             Destroy(gameObject);
+        }
+
+        if(!isEnemyBullet){
+            if (collision.CompareTag("Enemy"))
+            {
+                AbstractEnemy enemy = collision.GetComponent<AbstractEnemy>();
+                if (enemy != null)
+                {
+                    enemy.reciveDmg(damage); 
+                }
+
+                Destroy(gameObject);
+            }
+        }
+        else{
+            if (collision.CompareTag("Player"))
+            {
+                PlayerController player = collision.GetComponent<PlayerController>();
+                if (player != null)
+                {
+                    player.TakeDamage(damage); 
+                }
+
+                Destroy(gameObject);
+            }
         }
     }
 }

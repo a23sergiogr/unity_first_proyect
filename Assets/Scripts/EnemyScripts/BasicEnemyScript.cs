@@ -32,7 +32,7 @@ public class BasicEnemyScript : AbstractEnemy
     public override void reciveDmg(float damage)
     {
         lifePoints = lifePoints - damage;
-        ShowDamageText(damage);
+        //ShowDamageText(damage);
         if (lifePoints < 0)
         {
             Destroy(gameObject);
