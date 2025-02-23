@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Weapon[] equippedWeapon;
     private int equippedWeaponIndex = 0;
     private Transform firePoint;
+    [SerializeField] private GameObject animation;
 
 
     [SerializeField] private List<Item> equippedItems = new List<Item>();
@@ -43,12 +44,21 @@ private float _speed = 5f;
     private float dashDuration = 0.12f;
 
     /*Healt and Mana Bars*/
-    private float maxHealth = 100f;
-    private float currentHealth;
+    private float maxNumberOfHearts = 20;
+    private float currentMaxNumberOfHearts = 5;
+    private float currentNumberOfHearts;
     private float invulnerabilityTime = 0.75f;
     private bool isInvulnerable = false;
-    [SerializeField] private GameObject healthBar;
-    [SerializeField] private GameObject maxHealthBar;
+    [SerializeField] private GameObject heartPrefab;
+    [SerializeField] private GameObject emptyHeartPrefab;
+    [SerializeField] private Transform healthBarParent;
+    private float heartSpacing = 150f;
+
+    public void InitializeHealth()
+    {
+        currentNumberOfHearts = currentMaxNumberOfHearts;
+        UpdateHealthBar();
+    }
 
     public void TakeDamage(float damage)
     {
@@ -57,12 +67,13 @@ private float _speed = 5f;
             return;
         }
 
-        currentHealth -= damage;
-        StartCoroutine(Invulnerability());
-        if (currentHealth < 0)
-        {
-            currentHealth = 0;
+        currentNumberOfHearts -= damage;
+        if (currentNumberOfHearts <= 0) 
+        { 
+            return; 
         }
+
+        StartCoroutine(Invulnerability());
         UpdateHealthBar();
     }
 
@@ -75,26 +86,29 @@ private float _speed = 5f;
 
     public void Heal(float healAmount)
     {
-        currentHealth += healAmount;
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
+
         UpdateHealthBar();
     }
 
     private void UpdateHealthBar()
     {
-        float healthPercentage = currentHealth / maxHealth;
+        foreach (Transform child in healthBarParent)
+        {
+            Destroy(child.gameObject);
+        }
 
-        Vector3 healthBarScale = healthBar.transform.localScale;
-        healthBarScale.x = healthBarScale.x*healthPercentage; 
-        healthBar.transform.localScale = healthBarScale;
+        for (int i = 0; i < currentMaxNumberOfHearts; i++)
+        {
+            GameObject heart = Instantiate(i < currentNumberOfHearts ? heartPrefab : emptyHeartPrefab, healthBarParent);
+            heart.transform.localPosition = new Vector3(i * heartSpacing - 1100, 580, 0);
+        }
+
+        Debug.Log($"Health Updated: {currentNumberOfHearts}/{currentMaxNumberOfHearts}");
     }
 
     void Start()
     {
-        currentHealth = maxHealth;
+        InitializeHealth();
 
         rb = GetComponent<Rigidbody2D>();
 
@@ -210,6 +224,9 @@ private float _speed = 5f;
         equippedWeapon[equippedWeaponIndex].gameObject.transform.rotation = Quaternion.Euler(0, 0, angle);
 
         equippedWeapon[equippedWeaponIndex].gameObject.transform.position = transform.position + (Vector3)direction * 1f;
+
+
+        animation.transform.localScale = new Vector3(mousePosition.x < transform.position.x ? -1 : 1, 1, 1);
     }
 
     public void EquipWeapon(Weapon newWeapon)

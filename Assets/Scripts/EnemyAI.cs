@@ -9,6 +9,7 @@ public class EnemyAI : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        player = GameObject.FindGameObjectWithTag("Player").transform; // Busca al jugador en la escena
     }
 
     void Update()

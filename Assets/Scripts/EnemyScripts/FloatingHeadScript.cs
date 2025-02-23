@@ -5,13 +5,18 @@ public class FloatingHeadScript : AbstractEnemy
 {
 
     private float lifePoints = 1.5f;
-    private float attackDamage = 10f;
-    private float rangeAttackDamage = 20f;
+    private int attackDamage = 1;
+    private int rangeAttackDamage = 2;
     private float rangeAttackCooldown = 2f;
     private bool readyToAttack = true;
-    [SerializeField] Transform player;
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject bulletPrefab;
+
+    private void Start()
+    {
+
+        player = GameObject.FindGameObjectWithTag("Player").transform; // Busca al jugador en la escena
+    }
 
     void Update()
     {

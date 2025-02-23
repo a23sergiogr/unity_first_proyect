@@ -11,6 +11,7 @@ TagManager:
   - Item
   - EnemyAttack
   - UI
+  - Door
   layers:
   - Default
   - TransparentFX

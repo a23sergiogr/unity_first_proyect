@@ -6,8 +6,7 @@ public class BasicEnemyScript : AbstractEnemy
 {
 
     private float lifePoints = 1.5f;
-    private float attackDamage = 10f;
-    [SerializeField] Transform player;
+    private int attackDamage = 1;
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject damageTextPrefab;
 
@@ -16,12 +15,12 @@ public class BasicEnemyScript : AbstractEnemy
 
     void Start()
     {
-        
+        player = GameObject.FindGameObjectWithTag("Player").transform; // Busca al jugador en la escena
     }
 
     void Update()
     {
-
+        animation.transform.rotation = Quaternion.identity;
     }
 
     public override void attack()
