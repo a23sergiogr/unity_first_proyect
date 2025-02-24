@@ -38,6 +38,8 @@ public class RoomManager : MonoBehaviour
 
     private bool generationComplete = false;
 
+    [SerializeField] private List<GameObject> roomContentPrefab = new List<GameObject>();
+
     void Start()
     {
         roomGrid = new int[gridSizeX, gridSizeY];
@@ -69,9 +71,22 @@ public class RoomManager : MonoBehaviour
         {
             Debug.Log($"Generation complete, {roomCount} rooms created");
             generationComplete = true;
+            AssingContentToRoom();
         }
+    }
 
+    private void AssingContentToRoom()
+    {
+        roomObjects.ForEach(room => 
+        {
+            Room script = room.GetComponent<Room>();
 
+            GameObject randomContent = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
+
+            GameObject contentInstance = Instantiate(randomContent, room.transform);
+
+            contentInstance.transform.localPosition = Vector3.zero;
+        });
     }
 
     private void StartRoomGenerationFromRoom(Vector2Int roomIndex)

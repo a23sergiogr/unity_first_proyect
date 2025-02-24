@@ -1576,12 +1576,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a995b1bffdc3dc4d995ee1008f10a89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 962960350}
   roomPrefab: {fileID: 7032448779932690228, guid: 70d0c847e47ef7a4db43f0bb07b5ab6e, type: 3}
   maxRooms: 20
   minRooms: 10
   gridSizeX: 10
   gridSizeY: 10
+  roomContentPrefab:
+  - {fileID: 4187273673689306658, guid: ea2821cff35e7214ca77e7e94600e65f, type: 3}
+  - {fileID: 296433168809680538, guid: d0a39a2752d1a2e46b8c9e1233f7d97c, type: 3}
 --- !u!4 &2076516273
 Transform:
   m_ObjectHideFlags: 0
