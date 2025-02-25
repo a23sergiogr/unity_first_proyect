@@ -12,6 +12,7 @@ TagManager:
   - EnemyAttack
   - UI
   - Door
+  - VariableEntities
   layers:
   - Default
   - TransparentFX

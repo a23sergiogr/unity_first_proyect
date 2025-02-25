@@ -11,6 +11,7 @@ public class Door : MonoBehaviour
         {
             Debug.Log("Player entro en puerta");
             RoomManager.Instance.MoveToRoom(connectedRoom, direction);
+            connectedRoom.GenerateContent();
         }
     }
 }

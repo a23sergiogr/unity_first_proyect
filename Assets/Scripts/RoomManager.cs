@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NavMeshPlus.Components;
 using UnityEngine;
 
 public class RoomManager : MonoBehaviour
@@ -17,7 +18,7 @@ public class RoomManager : MonoBehaviour
         }
     }
 
-
+    [SerializeField] private NavMeshSurface navMeshSurface;
     [SerializeField] GameObject roomPrefab;
     [SerializeField] private int maxRooms = 20;
     [SerializeField] private int minRooms = 10;
@@ -39,6 +40,8 @@ public class RoomManager : MonoBehaviour
     private bool generationComplete = false;
 
     [SerializeField] private List<GameObject> roomContentPrefab = new List<GameObject>();
+
+    private Room currentRoom;
 
     void Start()
     {
@@ -80,12 +83,8 @@ public class RoomManager : MonoBehaviour
         roomObjects.ForEach(room => 
         {
             Room script = room.GetComponent<Room>();
-
-            GameObject randomContent = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
-
-            GameObject contentInstance = Instantiate(randomContent, room.transform);
-
-            contentInstance.transform.localPosition = Vector3.zero;
+            script.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
+            script.Position = room.transform;
         });
     }
 
@@ -218,14 +217,15 @@ public class RoomManager : MonoBehaviour
             }
         }
     }
+
     public Room GetPlayerRoom()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            return roomObjects.Find(r => r.GetComponent<Collider2D>().bounds.Contains(player.transform.position))?.GetComponent<Room>();
-        }
-        return null;
+        return currentRoom;
+    }
+
+    public void SetPlayerRoom(Room newRoom)
+    {
+        currentRoom = newRoom;
     }
 
     public void MoveToRoom(Room newRoom, Vector2Int direction)
@@ -237,6 +237,16 @@ public class RoomManager : MonoBehaviour
         {
             Debug.Log("Transportando");
             player.transform.position = newRoom.transform.position;
+
+            ActivateOnlyCurrentRoom(newRoom);
+            navMeshSurface.BuildNavMesh();
+        }
+    }
+    private void ActivateOnlyCurrentRoom(Room currentRoom)
+    {
+        foreach (var room in roomObjects)
+        {
+            room.SetActive(room == currentRoom.gameObject);
         }
     }
 }

@@ -35,6 +35,7 @@ public class BasicEnemyScript : AbstractEnemy
         if (lifePoints < 0)
         {
             Destroy(gameObject);
+            RoomManager.Instance.GetPlayerRoom()?.CheckEnemies();
         }
     }
 

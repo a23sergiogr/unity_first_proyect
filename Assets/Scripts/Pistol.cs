@@ -10,7 +10,6 @@ public class Pistol : Weapon
     [SerializeField] private float bulletRange = 2f;
 
     [SerializeField] private GameObject closeAttackHitbox;
-    [SerializeField] private float closeAttackDmgMultiplier = 1f;
 
 
     private void Start()
