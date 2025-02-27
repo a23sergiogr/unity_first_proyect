@@ -231,6 +231,12 @@ public class RoomManager : MonoBehaviour
     public void SetPlayerRoom(Room newRoom)
     {
         currentRoom = newRoom;
+        MoveCameraToRoom(newRoom);
+    }
+
+    private void MoveCameraToRoom(Room room)
+    {
+        Camera.main.transform.position = new Vector3(room.transform.position.x, room.transform.position.y, Camera.main.transform.position.z);
     }
 
     public void MoveToRoom(Room newRoom, Vector2Int direction)

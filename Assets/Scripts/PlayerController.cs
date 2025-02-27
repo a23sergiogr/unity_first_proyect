@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -11,21 +10,17 @@ public class PlayerController : MonoBehaviour
     private int equippedWeaponIndex = 0;
     private Transform firePoint;
     [SerializeField] private GameObject animation;
-
-
     [SerializeField] private List<Item> equippedItems = new List<Item>();
-
-
-
-private float _speed = 5f;
+    private float _speed = 5f;
     public float speed
     {
         get { return _speed; }
         set
         {
             // Si el valor es mayor a 30, ajusta a 30
-            _speed = Mathf.Min(30f, value); }
+            _speed = Mathf.Min(30f, value); 
         }
+    }
 
     /*Dash*/
     private float dashDistance = 4f;
@@ -97,13 +92,23 @@ private float _speed = 5f;
             Destroy(child.gameObject);
         }
 
+        Vector3 topLeft = GetTopLeftCorner(healthBarParent.GetComponent<RectTransform>());
+
         for (int i = 0; i < currentMaxNumberOfHearts; i++)
         {
             GameObject heart = Instantiate(i < currentNumberOfHearts ? heartPrefab : emptyHeartPrefab, healthBarParent);
-            heart.transform.localPosition = new Vector3(i * heartSpacing - 1100, 580, 0);
+            Vector3 heartPosition = topLeft + new Vector3(i * heartSpacing, 0, 0);
+            heart.transform.localPosition = heartPosition;
         }
 
         Debug.Log($"Health Updated: {currentNumberOfHearts}/{currentMaxNumberOfHearts}");
+    }
+
+    Vector3 GetTopLeftCorner(RectTransform canvasRect)
+    {
+        Vector3[] corners = new Vector3[4];
+        canvasRect.GetWorldCorners(corners);
+        return corners[1]; // Esquina superior izquierda
     }
 
     void Start()
