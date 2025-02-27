@@ -1657,13 +1657,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   navMeshSurface: {fileID: 666387402}
   roomPrefab: {fileID: 7032448779932690228, guid: 70d0c847e47ef7a4db43f0bb07b5ab6e, type: 3}
-  maxRooms: 20
-  minRooms: 10
+  maxRooms: 10
+  minRooms: 4
   gridSizeX: 10
   gridSizeY: 10
   roomContentPrefab:
   - {fileID: 4187273673689306658, guid: ea2821cff35e7214ca77e7e94600e65f, type: 3}
   - {fileID: 296433168809680538, guid: d0a39a2752d1a2e46b8c9e1233f7d97c, type: 3}
+  bossRoomContentPrefab:
+  - {fileID: 4187273673689306658, guid: 9e6ad36afd716dc41be78ebec5eaf30b, type: 3}
+  treasureRoomContentPrefab:
+  - {fileID: 8130648786591427293, guid: fc3bce477b1d87a48895a9b33df1cb57, type: 3}
+  - {fileID: 7466257736588292951, guid: a59078750b8b6a84f8d603c8c4344476, type: 3}
 --- !u!4 &2076516273
 Transform:
   m_ObjectHideFlags: 0

@@ -18,8 +18,23 @@ public class Room : MonoBehaviour
 
     public bool isComplete = false;
 
+    private TypeRoom _typeRoom = TypeRoom.NORMAL;
+    public TypeRoom typeRoom
+    {
+        get { return _typeRoom; }
+        set
+        {
+            if (TypeRoom.TREASURE == value)
+            {
+                _typeRoom = value;
+                isComplete = true;
+            }
+        }
+    }
+
     private void Awake()
     {
+        typeRoom = TypeRoom.NORMAL;
         doors = new Dictionary<Vector2Int, GameObject>
         {
             { Vector2Int.up, topDoor },

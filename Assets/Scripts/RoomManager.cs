@@ -41,6 +41,10 @@ public class RoomManager : MonoBehaviour
 
     [SerializeField] private List<GameObject> roomContentPrefab = new List<GameObject>();
 
+    [SerializeField] private List<GameObject> bossRoomContentPrefab = new List<GameObject>();
+
+    [SerializeField] private List<GameObject> treasureRoomContentPrefab = new List<GameObject>();
+
     private Room currentRoom;
 
     void Start()
@@ -75,6 +79,7 @@ public class RoomManager : MonoBehaviour
             Debug.Log($"Generation complete, {roomCount} rooms created");
             generationComplete = true;
             AssingContentToRoom();
+            GenerateTreasureRoom();
         }
     }
 
@@ -248,5 +253,47 @@ public class RoomManager : MonoBehaviour
         {
             room.SetActive(room == currentRoom.gameObject);
         }
+    }
+
+    private void GenerateBossRoom()
+    {
+        Room farthestRoom = null;
+        float maxDistance = 0f;
+
+        foreach (var room in roomObjects)
+        {
+            float distance = Vector3.Distance(room.transform.position, Vector3.zero);
+            if (distance > maxDistance)
+            {
+                maxDistance = distance;
+                farthestRoom = room.GetComponent<Room>();
+            }
+        }
+
+        if (farthestRoom != null)
+        {
+            farthestRoom.typeRoom = TypeRoom.BOSS;
+            //farthestRoom.SetAsBossRoom();
+            Debug.Log("Boss room set at: " + farthestRoom.RoomIndex);
+        }
+    }
+
+    private void GenerateTreasureRoom()
+    {
+        foreach (var room in roomObjects)
+        {
+            Room roomScript = room.GetComponent<Room>();
+            if (CountAndjacentRooms(roomScript.RoomIndex) == 1 && roomScript.typeRoom == TypeRoom.NORMAL)
+            {
+                SetAsTreasureRoom(roomScript);
+                Debug.Log("Treasure room set at: " + roomScript.RoomIndex + " '" + roomScript.name + "'");
+                break;
+            }
+        }
+    }
+
+    private void SetAsTreasureRoom(Room room)
+    {
+        room.Content = treasureRoomContentPrefab[Random.Range(0, treasureRoomContentPrefab.Count)];
     }
 }
