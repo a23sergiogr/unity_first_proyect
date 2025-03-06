@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using NavMeshPlus.Components;
 using UnityEngine;
@@ -18,7 +19,7 @@ public class RoomManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private NavMeshSurface navMeshSurface;
+    [SerializeField] private List<NavMeshSurface> navMeshSurfaceList = new List<NavMeshSurface>();
     [SerializeField] GameObject roomPrefab;
     [SerializeField] private int maxRooms = 20;
     [SerializeField] private int minRooms = 10;
@@ -78,8 +79,9 @@ public class RoomManager : MonoBehaviour
         {
             Debug.Log($"Generation complete, {roomCount} rooms created");
             generationComplete = true;
-            AssingContentToRoom();
+            GenerateBossRoom();
             GenerateTreasureRoom();
+            AssingContentToRoom();
         }
     }
 
@@ -88,8 +90,11 @@ public class RoomManager : MonoBehaviour
         roomObjects.ForEach(room => 
         {
             Room script = room.GetComponent<Room>();
-            script.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
-            script.Position = room.transform;
+            if (script.typeRoom == TypeRoom.NORMAL)
+            {
+                script.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
+                script.Position = room.transform;
+            }
         });
     }
 
@@ -114,10 +119,10 @@ public class RoomManager : MonoBehaviour
         if (roomCount >= maxRooms)
             return false;
 
-        if (Random.value < 0.5f && roomIndex != Vector2Int.zero)
+        if (Random.value < 0.5f && roomIndex != Vector2Int.zero) 
             return false;
 
-        if (CountAndjacentRooms(roomIndex) > 1)
+        if (CountAdjacentRooms(roomIndex) > 1)
             return false;
 
         roomQueue.Enqueue(roomIndex);
@@ -186,7 +191,7 @@ public class RoomManager : MonoBehaviour
         return null;
     }
 
-    private int CountAndjacentRooms(Vector2Int roomIndex)
+    private int CountAdjacentRooms(Vector2Int roomIndex)
     {
         int x = roomIndex.x;
         int y = roomIndex.y;
@@ -230,40 +235,99 @@ public class RoomManager : MonoBehaviour
 
     public void SetPlayerRoom(Room newRoom)
     {
+        Debug.Log("Jugador entró en " + gameObject.name);
         currentRoom = newRoom;
         MoveCameraToRoom(newRoom);
     }
 
     private void MoveCameraToRoom(Room room)
     {
-        Camera.main.transform.position = new Vector3(room.transform.position.x, room.transform.position.y, Camera.main.transform.position.z);
+        Debug.Log("Moviendo cámara con SmoothDamp");
+        StartCoroutine(MoveCameraSmooth(room.transform.position, 1f));
+    }
+
+    private IEnumerator MoveCameraSmooth(Vector3 targetPosition, float duration)
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null) yield break;
+
+        CameraController cameraController = mainCamera.GetComponent<CameraController>();
+        if (cameraController != null) cameraController.SetMoving(true); 
+
+        Vector3 velocity = Vector3.zero;
+        Vector3 startPosition = mainCamera.transform.position;
+        targetPosition.z = startPosition.z;
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, targetPosition, ref velocity, 0.2f);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        mainCamera.transform.position = targetPosition; 
+
+        if (cameraController != null) cameraController.SetMoving(false); 
     }
 
     public void MoveToRoom(Room newRoom, Vector2Int direction)
     {
-        if (newRoom == null) return;
+        if (newRoom == null)
+        {
+            Debug.LogError("La habitación a la que se intenta mover es nula.");
+            return;
+        }
 
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        if (player == null)
         {
-            Debug.Log("Transportando");
-            player.transform.position = newRoom.transform.position;
+            Debug.LogError("No se encontró al jugador en la escena.");
+            return;
+        }
 
-            ActivateOnlyCurrentRoom(newRoom);
+        // Calcula la nueva posición del jugador
+        Vector3 newPosition = newRoom.transform.position;
+
+        float offsetX = 7f;
+        float offsetY = 3f;
+
+        if (direction == Vector2Int.left) newPosition += new Vector3(offsetX, 0, 0);
+        if (direction == Vector2Int.right) newPosition += new Vector3(-offsetX, 0, 0);
+        if (direction == Vector2Int.up) newPosition += new Vector3(0, -offsetY, 0);
+        if (direction == Vector2Int.down) newPosition += new Vector3(0, offsetY, 0);
+
+        // Mueve al jugador a la nueva posición
+        SetPlayerRoom(newRoom);
+        player.transform.position = newPosition;
+        Debug.Log($"Jugador movido a la habitación en posición: {newPosition}.");
+
+        // Activa solo la habitación actual
+        ActivateOnlyCurrentRoom(newRoom);
+        Debug.Log("Habitación activada: " + newRoom.name);
+
+        // Reconstruye la malla de navegación
+        Debug.Log("Construyendo NavMesh para la habitación actual.");
+        foreach (var navMeshSurface in navMeshSurfaceList)
+        {
             navMeshSurface.BuildNavMesh();
         }
     }
+
+
     private void ActivateOnlyCurrentRoom(Room currentRoom)
     {
         foreach (var room in roomObjects)
         {
-            room.SetActive(room == currentRoom.gameObject);
+            room.SetActive(room == currentRoom.gameObject || room.GetComponent<Room>().isComplete);
         }
     }
 
     private void GenerateBossRoom()
     {
         Room farthestRoom = null;
+        GameObject roomObject = null;
         float maxDistance = 0f;
 
         foreach (var room in roomObjects)
@@ -273,14 +337,18 @@ public class RoomManager : MonoBehaviour
             {
                 maxDistance = distance;
                 farthestRoom = room.GetComponent<Room>();
+                roomObject = room;
             }
         }
 
         if (farthestRoom != null)
         {
+            farthestRoom.changeColor(new Color(254f / 255f, 25f / 255f, 55f));
+            farthestRoom.isComplete = false;
             farthestRoom.typeRoom = TypeRoom.BOSS;
-            //farthestRoom.SetAsBossRoom();
-            Debug.Log("Boss room set at: " + farthestRoom.RoomIndex);
+            farthestRoom.Content = bossRoomContentPrefab[Random.Range(0, bossRoomContentPrefab.Count)];
+            farthestRoom.Position = roomObject.transform;
+            Debug.Log("Boss room set at: " + farthestRoom.RoomIndex + " '" + farthestRoom.name + "'");
         }
     }
 
@@ -289,17 +357,17 @@ public class RoomManager : MonoBehaviour
         foreach (var room in roomObjects)
         {
             Room roomScript = room.GetComponent<Room>();
-            if (CountAndjacentRooms(roomScript.RoomIndex) == 1 && roomScript.typeRoom == TypeRoom.NORMAL)
+            if (roomScript.name == "Room-1") { roomScript.typeRoom = TypeRoom.START; }
+            if (CountAdjacentRooms(roomScript.RoomIndex) == 1 && roomScript.typeRoom == TypeRoom.NORMAL)
             {
-                SetAsTreasureRoom(roomScript);
+                roomScript.changeColor(new Color(254f / 255f, 190f / 255f, 0f));
+                roomScript.isComplete = true;
+                roomScript.typeRoom = TypeRoom.TREASURE;
+                roomScript.Content = treasureRoomContentPrefab[Random.Range(0, treasureRoomContentPrefab.Count)];
+                roomScript.Position = room.transform;
                 Debug.Log("Treasure room set at: " + roomScript.RoomIndex + " '" + roomScript.name + "'");
                 break;
             }
         }
-    }
-
-    private void SetAsTreasureRoom(Room room)
-    {
-        room.Content = treasureRoomContentPrefab[Random.Range(0, treasureRoomContentPrefab.Count)];
     }
 }

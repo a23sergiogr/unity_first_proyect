@@ -3,78 +3,71 @@ using UnityEngine;
 
 public class FloatingHeadScript : AbstractEnemy
 {
-
-    private float lifePoints = 1.5f;
-    private int attackDamage = 1;
     private int rangeAttackDamage = 2;
     private float rangeAttackCooldown = 2f;
-    private bool readyToAttack = true;
-    [SerializeField] GameObject attackHitbox;
-    [SerializeField] GameObject bulletPrefab;
+    private bool readyToAttack = false;
+    private bool waitingForAttack = true;
+    [SerializeField] private GameObject bulletPrefab;
 
-    private void Start()
+
+    protected override void Update()
     {
+        base.Update();
 
-        player = GameObject.FindGameObjectWithTag("Player").transform; // Busca al jugador en la escena
+        Vector2 enemyGlobalPosition = transform.parent != null ? transform.parent.TransformPoint(transform.localPosition) : transform.position;
+
+        Vector2 playerGlobalPosition = player.position;
+
+        if (waitingForAttack)
+        {
+            StartCoroutine(rangeAttack());
+        }
+
+        float distance = Vector2.Distance(enemyGlobalPosition, playerGlobalPosition);
+
+        if (distance < 5 && readyToAttack)
+        {
+            Shoot();
+            readyToAttack = false;
+            waitingForAttack = true;
+        }
     }
 
-    void Update()
-    {
-            if (Vector2.Distance(transform.position, player.position) < 6 && readyToAttack)
-            {
-                shoot();
-                StartCoroutine(rangeAttack());
-            } 
-            
-    }
+
 
     private IEnumerator rangeAttack()
     {
-        readyToAttack = false;
+        waitingForAttack = false;
         yield return new WaitForSeconds(rangeAttackCooldown);
         readyToAttack = true;
     }
 
-    private void shoot()
+    private void Shoot()
     {
-        GameObject newBullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        if (player == null) return; 
+
+        Vector2 enemyGlobalPosition = transform.position;
+
+        Vector2 playerGlobalPosition = player.position;
+
+        Vector2 direction = (playerGlobalPosition - enemyGlobalPosition).normalized;
+
+        GameObject newBullet = Instantiate(bulletPrefab, enemyGlobalPosition, Quaternion.identity);
         BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
 
         if (bulletScript != null)
         {
             bulletScript.SetDamage(rangeAttackDamage);
-            bulletScript.SetDirection(player.position - transform.position);
+            bulletScript.SetDirection(direction);
             bulletScript.SetBulletSpeed(5f);
             bulletScript.SetRange(10f);
             bulletScript.SetIsEnemyBullet(true);
         }
     }
 
-    public override void attack()
+
+    public override void Attack()
     {
         attackHitbox.SetActive(true);
-    }
-
-    public override void reciveDmg(float damage)
-    {
-        lifePoints = lifePoints - damage;
-        //ShowDamageText(damage);
-        if (lifePoints < 0)
-        {
-            Destroy(gameObject);
-            RoomManager.Instance.GetPlayerRoom()?.CheckEnemies();
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            PlayerController playerHealth = collision.GetComponent<PlayerController>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(attackDamage);
-            }
-        }
     }
 }

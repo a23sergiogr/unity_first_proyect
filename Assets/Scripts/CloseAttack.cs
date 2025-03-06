@@ -8,7 +8,7 @@ public class CloseAttack : MonoBehaviour
     {
         if (collision.CompareTag("Enemy"))
         {
-            AbstractEnemy enemy = collision.GetComponent<AbstractEnemy>();
+            Enemy enemy = collision.GetComponent<Enemy>();
             if (enemy != null)
             {
                 enemy.reciveDmg(damage);

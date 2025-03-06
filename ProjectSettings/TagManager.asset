@@ -13,6 +13,7 @@ TagManager:
   - UI
   - Door
   - VariableEntities
+  - ClosedDoors
   layers:
   - Default
   - TransparentFX

@@ -59,7 +59,7 @@ public class BulletScript : MonoBehaviour
         if(!isEnemyBullet){
             if (collision.CompareTag("Enemy"))
             {
-                AbstractEnemy enemy = collision.GetComponent<AbstractEnemy>();
+                Enemy enemy = collision.GetComponent<Enemy>();
                 if (enemy != null)
                 {
                     enemy.reciveDmg(damage); 
@@ -74,7 +74,7 @@ public class BulletScript : MonoBehaviour
                 PlayerController player = collision.GetComponent<PlayerController>();
                 if (player != null)
                 {
-                    player.TakeDamage(damage); 
+                    player.TakeDamage(Mathf.CeilToInt(damage)); 
                 }
 
                 Destroy(gameObject);

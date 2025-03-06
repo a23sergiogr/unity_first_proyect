@@ -38,16 +38,17 @@ public class PlayerController : MonoBehaviour
     private bool isDashing = false;
     private float dashDuration = 0.12f;
 
-    /*Healt and Mana Bars*/
-    private float maxNumberOfHearts = 20;
-    private float currentMaxNumberOfHearts = 5;
-    private float currentNumberOfHearts;
-    private float invulnerabilityTime = 0.75f;
+
+    /* Health and Mana Bars */
+    private int maxNumberOfHearts = 20;
+    private int currentMaxNumberOfHearts = 5;
+    private int currentNumberOfHearts;
+    private float invulnerabilityTime = 0.75f; // Este puede permanecer como float
     private bool isInvulnerable = false;
     [SerializeField] private GameObject heartPrefab;
     [SerializeField] private GameObject emptyHeartPrefab;
     [SerializeField] private Transform healthBarParent;
-    private float heartSpacing = 150f;
+    private float heartSpacing = 150f; // Este puede permanecer como float
 
     public void InitializeHealth()
     {
@@ -55,7 +56,7 @@ public class PlayerController : MonoBehaviour
         UpdateHealthBar();
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(int damage) // Cambiado a int
     {
         if (isInvulnerable)
         {
@@ -63,9 +64,11 @@ public class PlayerController : MonoBehaviour
         }
 
         currentNumberOfHearts -= damage;
-        if (currentNumberOfHearts <= 0) 
-        { 
-            return; 
+        if (currentNumberOfHearts <= 0)
+        {
+            currentNumberOfHearts = 0; // Asegura que no sea negativo
+            GameManager.Instance.PlayerDeath();
+            return;
         }
 
         StartCoroutine(Invulnerability());
@@ -79,10 +82,28 @@ public class PlayerController : MonoBehaviour
         isInvulnerable = false;
     }
 
-    public void Heal(float healAmount)
+    public void Heal(int healAmount)
     {
-
+        currentNumberOfHearts += healAmount;
+        if (currentNumberOfHearts > currentMaxNumberOfHearts)
+        {
+            currentNumberOfHearts = currentMaxNumberOfHearts;
+        }
         UpdateHealthBar();
+    }
+
+    public void HealthUp()
+    {
+        if (currentMaxNumberOfHearts < maxNumberOfHearts)
+        {
+            currentMaxNumberOfHearts++;
+            currentNumberOfHearts++;
+            UpdateHealthBar();
+        }
+        else
+        {
+            Debug.Log("No se puede aumentar más la salud máxima.");
+        }
     }
 
     private void UpdateHealthBar()
@@ -97,19 +118,22 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < currentMaxNumberOfHearts; i++)
         {
             GameObject heart = Instantiate(i < currentNumberOfHearts ? heartPrefab : emptyHeartPrefab, healthBarParent);
-            Vector3 heartPosition = topLeft + new Vector3(i * heartSpacing, 0, 0);
+            Vector3 heartPosition = topLeft + new Vector3(i * heartSpacing + heartSpacing, -heartSpacing, 0);
             heart.transform.localPosition = heartPosition;
         }
 
         Debug.Log($"Health Updated: {currentNumberOfHearts}/{currentMaxNumberOfHearts}");
     }
 
-    Vector3 GetTopLeftCorner(RectTransform canvasRect)
+    private Vector3 GetTopLeftCorner(RectTransform canvasRect)
     {
         Vector3[] corners = new Vector3[4];
-        canvasRect.GetWorldCorners(corners);
+        canvasRect.GetLocalCorners(corners);
         return corners[1]; // Esquina superior izquierda
     }
+
+    //Pause
+    public PauseManager pauseManager;
 
     void Start()
     {
@@ -132,41 +156,48 @@ public class PlayerController : MonoBehaviour
         movement.y = Input.GetAxisRaw("Vertical");
         movement = movement.normalized;
 
-
-        RotateFirePointTowardsMouse();
-
-        if (Input.GetMouseButtonDown(0) && equippedWeapon != null)
+        if (!pauseManager.isPaused) 
         {
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePosition.z = 0f;
-            Vector2 shootDirection = (mousePosition - transform.position).normalized;
+            RotateFirePointTowardsMouse();
 
-            equippedWeapon[equippedWeaponIndex].Fire(shootDirection);
+            if (Input.GetMouseButtonDown(0) && equippedWeapon != null)
+            {
+                Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                mousePosition.z = 0f;
+                Vector2 shootDirection = (mousePosition - transform.position).normalized;
+
+                equippedWeapon[equippedWeaponIndex].Fire(shootDirection);
+            }
+
+            if (Input.GetMouseButtonDown(1) && equippedWeapon != null)
+            {
+                Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                mousePosition.z = 0f;
+                Vector2 shootDirection = (mousePosition - transform.position).normalized;
+
+                equippedWeapon[equippedWeaponIndex].Fire2(shootDirection);
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= nextDashTime)
+            {
+                transform.LookAt(transform.position);
+                StartCoroutine(Dash());
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                ChangeWeapon(0);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                ChangeWeapon(1);
+            }
         }
 
-        if (Input.GetMouseButtonDown(1) && equippedWeapon != null)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePosition.z = 0f;
-            Vector2 shootDirection = (mousePosition - transform.position).normalized;
-
-            equippedWeapon[equippedWeaponIndex].Fire2(shootDirection);
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= nextDashTime) 
-        { 
-            transform.LookAt(transform.position);
-            StartCoroutine(Dash());
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            ChangeWeapon(0);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            ChangeWeapon(1);
+            pauseManager.TogglePause();
         }
     }
 
