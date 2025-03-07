@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     private Transform firePoint;
     [SerializeField] private GameObject animation;
     [SerializeField] private List<Item> equippedItems = new List<Item>();
-    private float _speed = 5f;
+    private float _speed = 4f;
     public float speed
     {
         get { return _speed; }
@@ -43,12 +43,13 @@ public class PlayerController : MonoBehaviour
     private int maxNumberOfHearts = 20;
     private int currentMaxNumberOfHearts = 5;
     private int currentNumberOfHearts;
-    private float invulnerabilityTime = 0.75f; // Este puede permanecer como float
+    private float invulnerabilityTime = 0.75f;
     private bool isInvulnerable = false;
     [SerializeField] private GameObject heartPrefab;
     [SerializeField] private GameObject emptyHeartPrefab;
     [SerializeField] private Transform healthBarParent;
-    private float heartSpacing = 150f; // Este puede permanecer como float
+    //private float heartSpacing = 150f; 
+    private float heartSpacing = 75f; 
 
     public void InitializeHealth()
     {
@@ -67,7 +68,9 @@ public class PlayerController : MonoBehaviour
         if (currentNumberOfHearts <= 0)
         {
             currentNumberOfHearts = 0; // Asegura que no sea negativo
+            UpdateHealthBar();
             GameManager.Instance.PlayerDeath();
+            Destroy(gameObject);
             return;
         }
 
@@ -78,7 +81,18 @@ public class PlayerController : MonoBehaviour
     IEnumerator Invulnerability()
     {
         isInvulnerable = true;
-        yield return new WaitForSeconds(invulnerabilityTime);
+        GetComponent<CircleCollider2D>().enabled = false;
+        SpriteRenderer sr = GameObject.FindGameObjectWithTag("sprite").GetComponent<SpriteRenderer>();
+        sr.enabled = false;
+        yield return new WaitForSeconds(invulnerabilityTime/4);
+        sr.enabled = true;
+        yield return new WaitForSeconds(invulnerabilityTime/4);
+        sr.enabled = false;
+        yield return new WaitForSeconds(invulnerabilityTime/4);
+        sr.enabled = true;
+        yield return new WaitForSeconds(invulnerabilityTime/4);
+        sr.enabled = true;
+        GetComponent<CircleCollider2D>().enabled = true;
         isInvulnerable = false;
     }
 
@@ -102,7 +116,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            Debug.Log("No se puede aumentar más la salud máxima.");
+            Debug.Log("No se puede aumentar mï¿½s la salud mï¿½xima.");
         }
     }
 

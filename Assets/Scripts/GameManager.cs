@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -23,28 +24,25 @@ public class GameManager : MonoBehaviour
 
         if (restartButton != null)
         {
+            restartButton.onClick.AddListener(RestartGame);
             restartButton.gameObject.SetActive(false); 
         }
     }
 
     public void PlayerDeath()
     {
-        Debug.Log("Jugador ha muerto. Activando botón de reinicio.");
+        Debug.Log("Jugador ha muerto. Activando botï¿½n de reinicio.");
 
         if (restartButton != null)
         {
             restartButton.gameObject.SetActive(true); 
         }
-
-        pauseManager.TogglePause();
     }
 
     public void RestartGame()
     {
         Debug.Log("Reiniciando juego...");
 
-        pauseManager.TogglePause();
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene("MainMenu");
     }
 }

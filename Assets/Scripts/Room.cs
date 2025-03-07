@@ -63,7 +63,7 @@ public class Room : MonoBehaviour
             if (Content == null)
                 return null;
 
-            Debug.Log("Generando contenido para la habitación.");
+            Debug.Log("Generando contenido para la habitaciï¿½n.");
             GameObject contentInstance = Instantiate(Content, Position);
             contentInstance.transform.localPosition = Vector3.zero;
 
@@ -71,7 +71,7 @@ public class Room : MonoBehaviour
         }
         else
         {
-            Debug.Log("La habitación ya está completa. No se generará contenido adicional.");
+            Debug.Log("La habitaciï¿½n ya estï¿½ completa. No se generarï¿½ contenido adicional.");
             return null;
         }
     }
@@ -99,7 +99,7 @@ public class Room : MonoBehaviour
     {
         yield return new WaitForSeconds(delay); // Espera el tiempo especificado
         navMeshAgent.enabled = true; // Reactiva el NavMeshAgent
-        Debug.Log("NavMeshAgent activado después de " + delay + " segundos.");
+        Debug.Log("NavMeshAgent activado despuï¿½s de " + delay + " segundos.");
     }
 
     public void GenerateEnvironment(GameObject contentInstance)
@@ -180,12 +180,18 @@ public class Room : MonoBehaviour
 
     public void CheckEnemies()
     {
+        StartCoroutine(waitAndCount());
+    }
+
+    private IEnumerator waitAndCount()
+    {
+        yield return new WaitForSeconds(0.5f);
         if (this == RoomManager.Instance.GetPlayerRoom())
         {
             int enemyCount = CountEnemiesInChildren(transform);
-            Debug.Log("Enemigos en la habitación: " + enemyCount);
+            Debug.Log("Enemigos en la habitaciï¿½n: " + enemyCount);
 
-            if (enemyCount == 1)
+            if (enemyCount == 0)
             {
                 ShowDoors();
                 isComplete = true;

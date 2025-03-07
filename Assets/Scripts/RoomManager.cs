@@ -82,20 +82,21 @@ public class RoomManager : MonoBehaviour
             GenerateBossRoom();
             GenerateTreasureRoom();
             AssingContentToRoom();
+            ActivateOnlyCurrentRoom(roomObjects[0].GetComponent<Room>());
         }
     }
 
     private void AssingContentToRoom()
     {
-        roomObjects.ForEach(room => 
+        foreach (var room in roomObjects)
         {
             Room script = room.GetComponent<Room>();
-            if (script.typeRoom == TypeRoom.NORMAL)
+            if (script.typeRoom == TypeRoom.NORMAL && script.Content == null) // Verifica si el contenido ya fue asignado
             {
                 script.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
                 script.Position = room.transform;
             }
-        });
+        }
     }
 
     private void StartRoomGenerationFromRoom(Vector2Int roomIndex)
@@ -136,12 +137,23 @@ public class RoomManager : MonoBehaviour
 
         OpenDoors(newRoom, x, y);
 
+        // Verifica si el contenido ya fue asignado
+        Room roomScript = newRoom.GetComponent<Room>();
+        if (roomScript.Content == null)
+        {
+            roomScript.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
+            roomScript.Position = newRoom.transform;
+        }
+
         return true;
     }
 
     private void RegenerateRooms()
     {
-        roomObjects.ForEach(Destroy);
+        foreach (var room in roomObjects)
+        {
+            Destroy(room);
+        }
         roomObjects.Clear();
         roomGrid = new int[gridSizeX, gridSizeY];
         roomQueue.Clear();
@@ -235,14 +247,14 @@ public class RoomManager : MonoBehaviour
 
     public void SetPlayerRoom(Room newRoom)
     {
-        Debug.Log("Jugador entró en " + gameObject.name);
+        Debug.Log("Jugador entrï¿½ en " + gameObject.name);
         currentRoom = newRoom;
         MoveCameraToRoom(newRoom);
     }
 
     private void MoveCameraToRoom(Room room)
     {
-        Debug.Log("Moviendo cámara con SmoothDamp");
+        Debug.Log("Moviendo cï¿½mara con SmoothDamp");
         StartCoroutine(MoveCameraSmooth(room.transform.position, 1f));
     }
 
@@ -276,39 +288,39 @@ public class RoomManager : MonoBehaviour
     {
         if (newRoom == null)
         {
-            Debug.LogError("La habitación a la que se intenta mover es nula.");
+            Debug.LogError("La habitaciï¿½n a la que se intenta mover es nula.");
             return;
         }
 
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
-            Debug.LogError("No se encontró al jugador en la escena.");
+            Debug.LogError("No se encontrï¿½ al jugador en la escena.");
             return;
         }
 
-        // Calcula la nueva posición del jugador
+        // Calcula la nueva posiciï¿½n del jugador
         Vector3 newPosition = newRoom.transform.position;
 
-        float offsetX = 7f;
-        float offsetY = 3f;
+        float offsetX = 7.7f;
+        float offsetY = 3.7f;
 
         if (direction == Vector2Int.left) newPosition += new Vector3(offsetX, 0, 0);
         if (direction == Vector2Int.right) newPosition += new Vector3(-offsetX, 0, 0);
         if (direction == Vector2Int.up) newPosition += new Vector3(0, -offsetY, 0);
         if (direction == Vector2Int.down) newPosition += new Vector3(0, offsetY, 0);
 
-        // Mueve al jugador a la nueva posición
+        // Mueve al jugador a la nueva posiciï¿½n
         SetPlayerRoom(newRoom);
         player.transform.position = newPosition;
-        Debug.Log($"Jugador movido a la habitación en posición: {newPosition}.");
+        Debug.Log($"Jugador movido a la habitaciï¿½n en posiciï¿½n: {newPosition}.");
 
-        // Activa solo la habitación actual
+        // Activa solo la habitaciï¿½n actual
         ActivateOnlyCurrentRoom(newRoom);
-        Debug.Log("Habitación activada: " + newRoom.name);
+        Debug.Log("Habitaciï¿½n activada: " + newRoom.name);
 
-        // Reconstruye la malla de navegación
-        Debug.Log("Construyendo NavMesh para la habitación actual.");
+        // Reconstruye la malla de navegaciï¿½n
+        Debug.Log("Construyendo NavMesh para la habitaciï¿½n actual.");
         foreach (var navMeshSurface in navMeshSurfaceList)
         {
             navMeshSurface.BuildNavMesh();
@@ -320,7 +332,19 @@ public class RoomManager : MonoBehaviour
     {
         foreach (var room in roomObjects)
         {
-            room.SetActive(room == currentRoom.gameObject || room.GetComponent<Room>().isComplete);
+            bool shouldActivate = room == currentRoom.gameObject || room.GetComponent<Room>().isComplete;
+            room.SetActive(shouldActivate);
+
+            if (shouldActivate && room.GetComponent<Room>().Content == null)
+            {
+                // Asigna el contenido solo si no estÃ¡ asignado
+                Room script = room.GetComponent<Room>();
+                if (script.typeRoom == TypeRoom.NORMAL)
+                {
+                    script.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
+                    script.Position = room.transform;
+                }
+            }
         }
     }
 
@@ -357,7 +381,10 @@ public class RoomManager : MonoBehaviour
         foreach (var room in roomObjects)
         {
             Room roomScript = room.GetComponent<Room>();
-            if (roomScript.name == "Room-1") { roomScript.typeRoom = TypeRoom.START; }
+            if (roomScript.name == "Room-1") { 
+                roomScript.typeRoom = TypeRoom.START;
+                roomScript.isComplete = true;
+                roomScript.changeColor(new Color(0f, 254f / 255f, 0f));}
             if (CountAdjacentRooms(roomScript.RoomIndex) == 1 && roomScript.typeRoom == TypeRoom.NORMAL)
             {
                 roomScript.changeColor(new Color(254f / 255f, 190f / 255f, 0f));

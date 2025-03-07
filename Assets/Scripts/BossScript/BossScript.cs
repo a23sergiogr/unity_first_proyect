@@ -5,15 +5,16 @@ public class BossScript : MonoBehaviour, Enemy
 {
     [SerializeField] public Transform player;
     [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private float attackCooldown = 2f;
-    [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private float jumpCooldown = 3f;
-
-    private float lifePoints = 20f;
+    [SerializeField] private GameObject Hitbox;
+    private float attackCooldown = 2f;
+    private float jumpForce = 10f;
+    private float jumpCooldown = 3f;
+    private float lifePoints = 40f;
     private float contactDmg = 1f;
-    private float nextAttackTime = 2f;
+    private float bulletDmg = 1f;
+    private float nextAttackTime;
     private bool isJumping = false;
-
+    private bool isAttacking = false; // Nuevo: Estado para controlar si el jefe est√° atacando
     private Collider2D bossCollider;
     private SpriteRenderer bossSprite;
 
@@ -22,13 +23,14 @@ public class BossScript : MonoBehaviour, Enemy
         player = GameObject.FindGameObjectWithTag("Player").transform;
         bossCollider = GetComponent<Collider2D>();
         bossSprite = GetComponent<SpriteRenderer>();
+        nextAttackTime = Time.time + attackCooldown;
     }
 
     void Update()
     {
-        if (Time.time >= nextAttackTime)
+        if (!isAttacking && Time.time >= nextAttackTime) // Solo atacar si no est√° atacando ya
         {
-            int attackType = Random.Range(0, 4);
+            int attackType = Random.Range(0, 4); // Cambiado a 4 para incluir el nuevo ataque
             switch (attackType)
             {
                 case 0:
@@ -41,7 +43,7 @@ public class BossScript : MonoBehaviour, Enemy
                     StartCoroutine(SpinAttack());
                     break;
                 case 3:
-                    StartCoroutine(WaveAttack()); // Nuevo ataque
+                    StartCoroutine(ChargeAttack()); // Nuevo ataque
                     break;
             }
             nextAttackTime = Time.time + attackCooldown;
@@ -50,12 +52,13 @@ public class BossScript : MonoBehaviour, Enemy
 
     private IEnumerator ShootWave()
     {
-        // Disparar 3 oleadas de balas en forma de X, +, X
+        isAttacking = true; // Bloquear nuevos ataques
         for (int i = 0; i < 3; i++)
         {
             ShootPattern(i % 2 == 0 ? "X" : "+");
             yield return new WaitForSeconds(0.5f);
         }
+        isAttacking = false; // Permitir nuevos ataques
     }
 
     private void ShootPattern(string pattern)
@@ -78,9 +81,10 @@ public class BossScript : MonoBehaviour, Enemy
 
             if (bulletScript != null)
             {
-                bulletScript.SetDirection(direction); // Establece la direcciÛn de la bala
+                bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(5f);
                 bulletScript.SetRange(10f);
+                bulletScript.SetDamage(bulletDmg);
                 bulletScript.SetIsEnemyBullet(true);
             }
         }
@@ -88,7 +92,7 @@ public class BossScript : MonoBehaviour, Enemy
 
     private IEnumerator JumpAttack()
     {
-        // Desactivar colisiÛn y sprite durante el salto
+        isAttacking = true; // Bloquear nuevos ataques
         bossCollider.enabled = false;
         bossSprite.enabled = false;
         isJumping = true;
@@ -105,16 +109,17 @@ public class BossScript : MonoBehaviour, Enemy
             yield return null;
         }
 
-        // Reactivar colisiÛn y sprite al terminar el salto
         bossCollider.enabled = true;
         bossSprite.enabled = true;
         isJumping = false;
 
         yield return new WaitForSeconds(jumpCooldown);
+        isAttacking = false; // Permitir nuevos ataques
     }
 
     private IEnumerator SpinAttack()
     {
+        isAttacking = true; // Bloquear nuevos ataques
         for (int i = 0; i < 360; i += 10)
         {
             float angle = i;
@@ -128,31 +133,32 @@ public class BossScript : MonoBehaviour, Enemy
                 bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(5f);
                 bulletScript.SetRange(10f);
+                bulletScript.SetDamage(bulletDmg);
                 bulletScript.SetIsEnemyBullet(true);
             }
 
             yield return new WaitForSeconds(0.1f);
         }
+        isAttacking = false; // Permitir nuevos ataques
     }
 
-    private IEnumerator WaveAttack()
+    private IEnumerator ChargeAttack() // Nuevo ataque
     {
-        // Nuevo ataque: Onda expansiva que daÒa al jugador si est· cerca
-        Debug.Log("Ataque de onda expansiva");
+        isAttacking = true; // Bloquear nuevos ataques
+        Vector2 startPosition = transform.position;
+        Vector2 targetPosition = player.position;
+        float chargeTime = 1f;
+        float elapsedTime = 0f;
 
-        float waveRadius = 5f; // Radio de la onda
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, waveRadius);
-
-        foreach (Collider2D hitCollider in hitColliders)
+        while (elapsedTime < chargeTime)
         {
-            if (hitCollider.CompareTag("Player"))
-            {
-                PlayerController playerComponent = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
-                playerComponent.TakeDamage(Mathf.CeilToInt(contactDmg));
-            }
+            transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / chargeTime);
+            elapsedTime += Time.deltaTime;
+            yield return null;
         }
 
-        yield return new WaitForSeconds(1f); // Tiempo de espera despuÈs del ataque
+        yield return new WaitForSeconds(1f); // Esperar un momento despu√©s de cargar
+        isAttacking = false; // Permitir nuevos ataques
     }
 
     public virtual void reciveDmg(float damage)
@@ -162,6 +168,18 @@ public class BossScript : MonoBehaviour, Enemy
         {
             RoomManager.Instance.GetPlayerRoom()?.CheckEnemies();
             Destroy(gameObject);
+        }
+    }
+    
+    protected virtual void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            PlayerController playerHealth = collision.GetComponent<PlayerController>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(Mathf.CeilToInt(contactDmg));
+            }
         }
     }
 }
