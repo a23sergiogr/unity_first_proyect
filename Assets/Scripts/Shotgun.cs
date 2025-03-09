@@ -11,9 +11,9 @@ public class Shotgun : Weapon
     [SerializeField] private float bulletSpeed = 10f;
     [SerializeField] private float bulletRange = 2f;
 
-
     [SerializeField] private GameObject closeAttackHitbox;
-    [SerializeField] private float closeAttackDmgMultiplier = 1f;
+
+    [SerializeField] private Sprite bulletSprite;
 
     private void Start()
     {
@@ -41,6 +41,7 @@ public class Shotgun : Weapon
 
                 if (bulletScript != null)
                 {
+                    bulletScript.SetSprite(bulletSprite);
                     bulletScript.SetDamage(damage);
                     bulletScript.SetDirection(spreadDirection);
                     bulletScript.SetBulletSpeed(bulletSpeed);

@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PauseManager : MonoBehaviour
 {
-    public GameObject pauseMenu; 
+    public GameObject pauseMenu;
     public Button resumeButton;
+    public Button mainMenuButton;
 
     public bool isPaused { get; private set; } = false;
 
@@ -12,6 +14,7 @@ public class PauseManager : MonoBehaviour
     {
         pauseMenu.SetActive(false);
         resumeButton.onClick.AddListener(TogglePause);
+        mainMenuButton.onClick.AddListener(QuitGame);
     }
 
     public void TogglePause()
@@ -31,6 +34,6 @@ public class PauseManager : MonoBehaviour
     public void QuitGame()
     {
         Time.timeScale = 1;
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu"); 
+        SceneManager.LoadScene("MainMenu"); 
     }
 }

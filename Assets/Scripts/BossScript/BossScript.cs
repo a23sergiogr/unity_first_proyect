@@ -6,12 +6,14 @@ public class BossScript : MonoBehaviour, Enemy
     [SerializeField] public Transform player;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private GameObject Hitbox;
-    private float attackCooldown = 2f;
-    private float jumpForce = 10f;
-    private float jumpCooldown = 3f;
+    [SerializeField] private Animator animator;
+    [SerializeField] private Sprite bulletSprite;
+    private const float attackCooldown = 2f;
+    private const float jumpForce = 10f;
+    private const float jumpCooldown = 3f;
+    private const float contactDmg = 1f;
+    private const float bulletDmg = 1f;
     private float lifePoints = 40f;
-    private float contactDmg = 1f;
-    private float bulletDmg = 1f;
     private float nextAttackTime;
     private bool isJumping = false;
     private bool isAttacking = false; // Nuevo: Estado para controlar si el jefe está atacando
@@ -28,9 +30,9 @@ public class BossScript : MonoBehaviour, Enemy
 
     void Update()
     {
-        if (!isAttacking && Time.time >= nextAttackTime) // Solo atacar si no está atacando ya
+        if (!isAttacking && Time.time >= nextAttackTime) 
         {
-            int attackType = Random.Range(0, 4); // Cambiado a 4 para incluir el nuevo ataque
+            int attackType = Random.Range(0, 4); 
             switch (attackType)
             {
                 case 0:
@@ -43,7 +45,7 @@ public class BossScript : MonoBehaviour, Enemy
                     StartCoroutine(SpinAttack());
                     break;
                 case 3:
-                    StartCoroutine(ChargeAttack()); // Nuevo ataque
+                    StartCoroutine(ChargeAttack()); 
                     break;
             }
             nextAttackTime = Time.time + attackCooldown;
@@ -81,6 +83,7 @@ public class BossScript : MonoBehaviour, Enemy
 
             if (bulletScript != null)
             {
+                bulletScript.SetSprite(bulletSprite);
                 bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(5f);
                 bulletScript.SetRange(10f);
@@ -92,35 +95,67 @@ public class BossScript : MonoBehaviour, Enemy
 
     private IEnumerator JumpAttack()
     {
-        isAttacking = true; // Bloquear nuevos ataques
-        bossCollider.enabled = false;
-        bossSprite.enabled = false;
-        isJumping = true;
+        const float JumpTime = 2f;
+        const float JumpTimeAnimation = 0.6f;
+        const float JumpTimeAnimation2 = 0.2f;
+
+        StartJumpAttackAnimation();
+
+        yield return new WaitForSeconds(JumpTimeAnimation);
+
+        animator.SetBool("AirTime", true);
+
+        DisableBossColliderAndSprite();
 
         Vector2 startPosition = transform.position;
         Vector2 targetPosition = player.position;
-        float jumpTime = 1f;
-        float elapsedTime = 0f;
 
-        while (elapsedTime < jumpTime)
+
+        float elapsedTime = 0f;
+        while (elapsedTime < JumpTime)
         {
-            transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / jumpTime);
+            transform.position = Vector2.Lerp(startPosition, targetPosition, elapsedTime / JumpTime);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        bossCollider.enabled = true;
-        bossSprite.enabled = true;
-        isJumping = false;
+        EndJumpAttackAnimation();
+        yield return new WaitForSeconds(JumpTimeAnimation2);
+
+        animator.SetTrigger("ReturnToNormal");
 
         yield return new WaitForSeconds(jumpCooldown);
-        isAttacking = false; // Permitir nuevos ataques
+
+        animator.ResetTrigger("ReturnToNormal");
+
+        isAttacking = false;
     }
+
+    private void StartJumpAttackAnimation()
+    {
+        animator.SetTrigger("JumpAttack");
+        isAttacking = true; 
+        isJumping = true;
+    }
+
+    private void DisableBossColliderAndSprite()
+    {
+        bossCollider.enabled = false;
+    }
+
+    private void EndJumpAttackAnimation()
+    {
+        animator.SetBool("AirTime", false);
+        animator.ResetTrigger("JumpAttack");
+        bossCollider.enabled = true;
+        isJumping = false;
+    }
+
 
     private IEnumerator SpinAttack()
     {
-        isAttacking = true; // Bloquear nuevos ataques
-        for (int i = 0; i < 360; i += 10)
+        isAttacking = true; 
+        for (int i = 0; i < 360; i += 20)
         {
             float angle = i;
             Vector2 direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
@@ -130,6 +165,7 @@ public class BossScript : MonoBehaviour, Enemy
 
             if (bulletScript != null)
             {
+                bulletScript.SetSprite(bulletSprite);
                 bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(5f);
                 bulletScript.SetRange(10f);
@@ -139,12 +175,12 @@ public class BossScript : MonoBehaviour, Enemy
 
             yield return new WaitForSeconds(0.1f);
         }
-        isAttacking = false; // Permitir nuevos ataques
+        isAttacking = false;
     }
 
-    private IEnumerator ChargeAttack() // Nuevo ataque
+    private IEnumerator ChargeAttack() 
     {
-        isAttacking = true; // Bloquear nuevos ataques
+        isAttacking = true; 
         Vector2 startPosition = transform.position;
         Vector2 targetPosition = player.position;
         float chargeTime = 1f;
@@ -157,8 +193,8 @@ public class BossScript : MonoBehaviour, Enemy
             yield return null;
         }
 
-        yield return new WaitForSeconds(1f); // Esperar un momento después de cargar
-        isAttacking = false; // Permitir nuevos ataques
+        yield return new WaitForSeconds(1f); 
+        isAttacking = false; 
     }
 
     public virtual void reciveDmg(float damage)
@@ -167,7 +203,7 @@ public class BossScript : MonoBehaviour, Enemy
         if (lifePoints <= 0)
         {
             RoomManager.Instance.GetPlayerRoom()?.CheckEnemies();
-            Destroy(gameObject);
+            Death();
         }
     }
     
@@ -181,5 +217,12 @@ public class BossScript : MonoBehaviour, Enemy
                 playerHealth.TakeDamage(Mathf.CeilToInt(contactDmg));
             }
         }
+    }
+
+    private IEnumerator Death() 
+    {
+        animator.SetTrigger("Death");
+        yield return new WaitForSeconds(0.5f);
+        Destroy(gameObject);
     }
 }

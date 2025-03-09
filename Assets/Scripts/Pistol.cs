@@ -11,6 +11,7 @@ public class Pistol : Weapon
 
     [SerializeField] private GameObject closeAttackHitbox;
 
+    [SerializeField] private Sprite bulletSprite;
 
     private void Start()
     {
@@ -33,6 +34,7 @@ public class Pistol : Weapon
 
             if (bulletScript != null)
             {
+                bulletScript.SetSprite(bulletSprite);
                 bulletScript.SetDamage(damage);
                 bulletScript.SetDirection(direction);
                 bulletScript.SetBulletSpeed(bulletSpeed);

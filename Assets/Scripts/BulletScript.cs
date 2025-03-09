@@ -6,8 +6,10 @@ public class BulletScript : MonoBehaviour
     private float range;
     private Vector2 moveDirection;
     private float lifeTime;
-    private float damage; 
-    private bool isEnemyBullet = false; 
+    private float damage;
+    private bool isEnemyBullet = false;
+    private Sprite sprite;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
@@ -49,6 +51,23 @@ public class BulletScript : MonoBehaviour
         this.isEnemyBullet = isEnemyBullet;
     }
 
+    public Sprite GetSprite()
+    {
+        return sprite;
+    }
+
+    public void SetSprite(Sprite newSprite)
+    {
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        sprite = newSprite;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = sprite;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Wall"))
@@ -56,25 +75,27 @@ public class BulletScript : MonoBehaviour
             Destroy(gameObject);
         }
 
-        if(!isEnemyBullet){
+        if (!isEnemyBullet)
+        {
             if (collision.CompareTag("Enemy"))
             {
                 Enemy enemy = collision.GetComponent<Enemy>();
                 if (enemy != null)
                 {
-                    enemy.reciveDmg(damage); 
+                    enemy.reciveDmg(damage);
                 }
 
                 Destroy(gameObject);
             }
         }
-        else{
+        else
+        {
             if (collision.CompareTag("Player"))
             {
                 PlayerController player = collision.GetComponent<PlayerController>();
                 if (player != null)
                 {
-                    player.TakeDamage(Mathf.CeilToInt(damage)); 
+                    player.TakeDamage(Mathf.CeilToInt(damage));
                 }
 
                 Destroy(gameObject);

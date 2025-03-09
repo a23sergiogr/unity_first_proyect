@@ -8,8 +8,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 movement;
     [SerializeField] private Weapon[] equippedWeapon;
     private int equippedWeaponIndex = 0;
-    private Transform firePoint;
-    [SerializeField] private GameObject animation;
+    [SerializeField] private new GameObject animation;
     [SerializeField] private List<Item> equippedItems = new List<Item>();
     private float _speed = 4f;
     public float speed
@@ -262,7 +261,7 @@ public class PlayerController : MonoBehaviour
 
     private void RotateFirePointTowardsMouse()
     {
-        firePoint = equippedWeapon[equippedWeaponIndex].GetFirePoint();
+        Transform firePoint = equippedWeapon[equippedWeaponIndex].GetFirePoint();
 
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePosition.z = 0f; 

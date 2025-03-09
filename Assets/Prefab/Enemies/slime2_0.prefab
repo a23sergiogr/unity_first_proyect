@@ -256,6 +256,7 @@ MonoBehaviour:
   attackHitbox: {fileID: 4602312068687268597}
   damageTextPrefab: {fileID: 0}
   bulletPrefab: {fileID: 3947684640108617565, guid: 48c7bba56cdd89a42a72755120ad87c5, type: 3}
+  bulletSprite: {fileID: 2404409263786322456, guid: d33bb8a0d8f721a4cb412e5f05fdb704, type: 3}
 --- !u!50 &3706110341958125677
 Rigidbody2D:
   serializedVersion: 5

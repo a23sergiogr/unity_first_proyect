@@ -8,6 +8,7 @@ public class FloatingHeadScript : AbstractEnemy
     private bool readyToAttack = false;
     private bool waitingForAttack = true;
     [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Sprite bulletSprite;
 
 
     protected override void Update()
@@ -57,6 +58,7 @@ public class FloatingHeadScript : AbstractEnemy
 
         if (bulletScript != null)
         {
+            bulletScript.SetSprite(bulletSprite);
             bulletScript.SetDamage(rangeAttackDamage);
             bulletScript.SetDirection(direction);
             bulletScript.SetBulletSpeed(5f);

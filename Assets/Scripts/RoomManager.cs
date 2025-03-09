@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NavMeshPlus.Components;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class RoomManager : MonoBehaviour
 {
@@ -46,6 +47,8 @@ public class RoomManager : MonoBehaviour
 
     [SerializeField] private List<GameObject> treasureRoomContentPrefab = new List<GameObject>();
 
+    [SerializeField] private TileBase floorTile; // Tile para el suelo
+
     private Room currentRoom;
 
     void Start()
@@ -72,7 +75,7 @@ public class RoomManager : MonoBehaviour
         }
         else if (roomCount < minRooms)
         {
-            Debug.Log("RoomCount was less then the minimun amount of rooms. Trying again.");
+            Debug.Log("RoomCount was less then the minimum amount of rooms. Trying again.");
             RegenerateRooms();
         }
         else if (!generationComplete)
@@ -81,12 +84,12 @@ public class RoomManager : MonoBehaviour
             generationComplete = true;
             GenerateBossRoom();
             GenerateTreasureRoom();
-            AssingContentToRoom();
+            AssignContentToRoom();
             ActivateOnlyCurrentRoom(roomObjects[0].GetComponent<Room>());
         }
     }
 
-    private void AssingContentToRoom()
+    private void AssignContentToRoom()
     {
         foreach (var room in roomObjects)
         {
@@ -108,8 +111,10 @@ public class RoomManager : MonoBehaviour
         roomCount++;
         var initialRoom = Instantiate(roomPrefab, GetPositionFromGridIndex(roomIndex), Quaternion.identity);
         initialRoom.name = $"Room-{roomCount}";
-        initialRoom.GetComponent<Room>().RoomIndex = roomIndex;
+        Room roomScript = initialRoom.GetComponent<Room>();
+        roomScript.RoomIndex = roomIndex;
         roomObjects.Add(initialRoom);
+
     }
 
     private bool TryGenerateRoom(Vector2Int roomIndex)
@@ -120,7 +125,7 @@ public class RoomManager : MonoBehaviour
         if (roomCount >= maxRooms)
             return false;
 
-        if (Random.value < 0.5f && roomIndex != Vector2Int.zero) 
+        if (Random.value < 0.5f && roomIndex != Vector2Int.zero)
             return false;
 
         if (CountAdjacentRooms(roomIndex) > 1)
@@ -131,14 +136,15 @@ public class RoomManager : MonoBehaviour
         roomCount++;
 
         var newRoom = Instantiate(roomPrefab, GetPositionFromGridIndex(roomIndex), Quaternion.identity);
-        newRoom.GetComponent<Room>().RoomIndex = roomIndex;
+        Room roomScript = newRoom.GetComponent<Room>();
+        roomScript.RoomIndex = roomIndex;
         newRoom.name = $"Room-{roomCount}";
         roomObjects.Add(newRoom);
+
 
         OpenDoors(newRoom, x, y);
 
         // Verifica si el contenido ya fue asignado
-        Room roomScript = newRoom.GetComponent<Room>();
         if (roomScript.Content == null)
         {
             roomScript.Content = roomContentPrefab[Random.Range(0, roomContentPrefab.Count)];
@@ -247,14 +253,14 @@ public class RoomManager : MonoBehaviour
 
     public void SetPlayerRoom(Room newRoom)
     {
-        Debug.Log("Jugador entr� en " + gameObject.name);
+        Debug.Log("Jugador entró en " + gameObject.name);
         currentRoom = newRoom;
         MoveCameraToRoom(newRoom);
     }
 
     private void MoveCameraToRoom(Room room)
     {
-        Debug.Log("Moviendo c�mara con SmoothDamp");
+        Debug.Log("Moviendo cámara con SmoothDamp");
         StartCoroutine(MoveCameraSmooth(room.transform.position, 1f));
     }
 
@@ -264,7 +270,7 @@ public class RoomManager : MonoBehaviour
         if (mainCamera == null) yield break;
 
         CameraController cameraController = mainCamera.GetComponent<CameraController>();
-        if (cameraController != null) cameraController.SetMoving(true); 
+        if (cameraController != null) cameraController.SetMoving(true);
 
         Vector3 velocity = Vector3.zero;
         Vector3 startPosition = mainCamera.transform.position;
@@ -279,27 +285,27 @@ public class RoomManager : MonoBehaviour
             yield return null;
         }
 
-        mainCamera.transform.position = targetPosition; 
+        mainCamera.transform.position = targetPosition;
 
-        if (cameraController != null) cameraController.SetMoving(false); 
+        if (cameraController != null) cameraController.SetMoving(false);
     }
 
     public void MoveToRoom(Room newRoom, Vector2Int direction)
     {
         if (newRoom == null)
         {
-            Debug.LogError("La habitaci�n a la que se intenta mover es nula.");
+            Debug.LogError("La habitación a la que se intenta mover es nula.");
             return;
         }
 
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
-            Debug.LogError("No se encontr� al jugador en la escena.");
+            Debug.LogError("No se encontró al jugador en la escena.");
             return;
         }
 
-        // Calcula la nueva posici�n del jugador
+        // Calcula la nueva posición del jugador
         Vector3 newPosition = newRoom.transform.position;
 
         float offsetX = 7.7f;
@@ -310,23 +316,23 @@ public class RoomManager : MonoBehaviour
         if (direction == Vector2Int.up) newPosition += new Vector3(0, -offsetY, 0);
         if (direction == Vector2Int.down) newPosition += new Vector3(0, offsetY, 0);
 
-        // Mueve al jugador a la nueva posici�n
+        // Mueve al jugador a la nueva posición
         SetPlayerRoom(newRoom);
         player.transform.position = newPosition;
-        Debug.Log($"Jugador movido a la habitaci�n en posici�n: {newPosition}.");
+        Debug.Log($"Jugador movido a la habitación en posición: {newPosition}.");
 
-        // Activa solo la habitaci�n actual
+        // Activa solo la habitación actual
         ActivateOnlyCurrentRoom(newRoom);
-        Debug.Log("Habitaci�n activada: " + newRoom.name);
+        Debug.Log("Habitación activada: " + newRoom.name);
+        newRoom.CheckEnemies();
 
-        // Reconstruye la malla de navegaci�n
-        Debug.Log("Construyendo NavMesh para la habitaci�n actual.");
+        // Reconstruye la malla de navegación
+        Debug.Log("Construyendo NavMesh para la habitación actual.");
         foreach (var navMeshSurface in navMeshSurfaceList)
         {
             navMeshSurface.BuildNavMesh();
         }
     }
-
 
     private void ActivateOnlyCurrentRoom(Room currentRoom)
     {
@@ -381,14 +387,15 @@ public class RoomManager : MonoBehaviour
         foreach (var room in roomObjects)
         {
             Room roomScript = room.GetComponent<Room>();
-            if (roomScript.name == "Room-1") { 
+            if (roomScript.name == "Room-1")
+            {
                 roomScript.typeRoom = TypeRoom.START;
                 roomScript.isComplete = true;
-                roomScript.changeColor(new Color(0f, 254f / 255f, 0f));}
+                roomScript.changeColor(new Color(0f, 254f / 255f, 0f));
+            }
             if (CountAdjacentRooms(roomScript.RoomIndex) == 1 && roomScript.typeRoom == TypeRoom.NORMAL)
             {
                 roomScript.changeColor(new Color(254f / 255f, 190f / 255f, 0f));
-                roomScript.isComplete = true;
                 roomScript.typeRoom = TypeRoom.TREASURE;
                 roomScript.Content = treasureRoomContentPrefab[Random.Range(0, treasureRoomContentPrefab.Count)];
                 roomScript.Position = room.transform;
